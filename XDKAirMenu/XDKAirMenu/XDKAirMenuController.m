@@ -25,11 +25,16 @@
 @property (nonatomic, assign) CGFloat minScaleController;
 @property (nonatomic, assign) CGFloat minScaleTableView;
 @property (nonatomic, assign) CGFloat minAlphaTableView;
-
+@property (nonatomic, strong) UIPanGestureRecognizer *panGesture;
 @end
 
 
 @implementation XDKAirMenuController
+
+- (void)dealloc {
+    self.tableView.delegate = nil;
+    self.tableView.dataSource = nil;
+}
 
 + (instancetype)sharedMenu
 {
@@ -73,17 +78,13 @@
     
     _isMenuOpened = FALSE;
     [self openViewControllerAtIndexPath:[NSIndexPath indexPathForItem:0 inSection:0]];
-}
-
-- (void)viewDidAppear:(BOOL)animated
-{
-    [super viewDidAppear:animated];
     
-    UIWindow *frontWindow = [[UIApplication sharedApplication] keyWindow];
+    //    UIWindow *frontWindow = [[UIApplication sharedApplication] keyWindow];
+    //
+    //    _panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panGesture:)];
+    //    _panGesture.delegate = self;
+    //    [frontWindow addGestureRecognizer:_panGesture];
     
-    UIPanGestureRecognizer *panGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panGesture:)];
-    panGesture.delegate = self;
-    [frontWindow addGestureRecognizer:panGesture];
 }
 
 - (void)didReceiveMemoryWarning
@@ -268,7 +269,7 @@
     self.currentViewController.view.frame = frame;
     
     [self closeMenuAnimated];
-
+    
 }
 
 
