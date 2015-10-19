@@ -10,8 +10,7 @@
 
 @class XDKAirMenuController;
 
-
-@protocol XDKAirMenuDelegate <NSObject>
+@protocol XDKAirMenuDelegate <NSObject, UITableViewDelegate>
 
 @required
 
@@ -123,6 +122,11 @@
  * Method to close menu with animation
  */
 - (void)closeMenuAnimated;
+
+/**
+ * Method to open a ViewController at a especific indexPath
+ */
+- (void)openViewControllerAtIndexPath:(NSIndexPath*)indexPath;
 
 
 @end

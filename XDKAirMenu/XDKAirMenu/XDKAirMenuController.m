@@ -26,6 +26,9 @@
 @property (nonatomic, assign) CGFloat minScaleTableView;
 @property (nonatomic, assign) CGFloat minAlphaTableView;
 @property (nonatomic, strong) UIPanGestureRecognizer *panGesture;
+
+@property (nonatomic, assign) id <UITableViewDelegate> internalTableDelegate;
+
 @end
 
 
@@ -55,6 +58,9 @@
     if ([self.airDelegate respondsToSelector:@selector(tableViewForAirMenu:)])
     {
         self.tableView = [self.airDelegate tableViewForAirMenu:self];
+        
+        self.internalTableDelegate = self.tableView.delegate;
+        
         self.tableView.delegate = self;
     }
     
@@ -335,6 +341,9 @@
     [self.currentViewController.view removeFromSuperview];
     [self.currentViewController removeFromParentViewController];
     [self openViewControllerAtIndexPath:indexPath];
+    
+    if ([self.internalTableDelegate respondsToSelector:@selector(tableView:didSelectRowAtIndexPath:)])
+        [self.internalTableDelegate tableView:tableView didSelectRowAtIndexPath:indexPath];
 }
 
 
@@ -344,6 +353,21 @@
 {
     if (self.view.superview == nil)
         _isMenuOnRight = isMenuOnRight;
+}
+
+#pragma mark - internalDelegete
+
+- (NSMethodSignature *)methodSignatureForSelector:(SEL)selector
+{
+    NSObject *delegateForResponse = [self.tableView.delegate respondsToSelector:selector] ? self.tableView.delegate : self.internalTableDelegate;
+    return [delegateForResponse respondsToSelector:selector] ? [delegateForResponse methodSignatureForSelector:selector] : nil;
+}
+
+- (void)invokeInvocation:(NSInvocation *)invocation onDelegate:(id<UIScrollViewDelegate>)delegate
+{
+    if ([delegate respondsToSelector:invocation.selector]) {
+        [invocation invokeWithTarget:delegate];
+    }
 }
 
 @end
