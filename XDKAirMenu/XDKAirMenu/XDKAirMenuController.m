@@ -7,6 +7,7 @@
 //
 
 #import "XDKAirMenuController.h"
+#import <objc/runtime.h>
 
 #define WIDTH_OPENED (35.f)
 #define MIN_SCALE_CONTROLLER (0.5f)
@@ -14,8 +15,7 @@
 #define MIN_ALPHA_TABLEVIEW (0.01f)
 #define DELTA_OPENING (65.f)
 
-
-@interface XDKAirMenuController ()<UITableViewDelegate, UIGestureRecognizerDelegate>
+@interface XDKAirMenuController () <UIGestureRecognizerDelegate>
 
 @property (nonatomic, assign) CGPoint startLocation;
 @property (nonatomic, assign) CGPoint lastLocation;
@@ -26,8 +26,6 @@
 @property (nonatomic, assign) CGFloat minScaleTableView;
 @property (nonatomic, assign) CGFloat minAlphaTableView;
 @property (nonatomic, strong) UIPanGestureRecognizer *panGesture;
-
-@property (nonatomic, assign) id <UITableViewDelegate> internalTableDelegate;
 
 @end
 
@@ -55,13 +53,8 @@
 {
     [super viewDidLoad];
     
-    if ([self.airDelegate respondsToSelector:@selector(tableViewForAirMenu:)])
-    {
+    if ([self.airDelegate respondsToSelector:@selector(tableViewForAirMenu:)]) {
         self.tableView = [self.airDelegate tableViewForAirMenu:self];
-        
-        self.internalTableDelegate = self.tableView.delegate;
-        
-        self.tableView.delegate = self;
     }
     
     self.widthOpened = WIDTH_OPENED;
@@ -207,6 +200,7 @@
 {
     if (self.isMenuOpened)
         return TRUE;
+    
     return FALSE;
 }
 
@@ -215,6 +209,11 @@
 
 - (void)openViewControllerAtIndexPath:(NSIndexPath*)indexPath
 {
+    if (self.currentViewController){
+        [self.currentViewController.view removeFromSuperview];
+        [self.currentViewController removeFromParentViewController];
+    }
+
     if ([self.airDelegate respondsToSelector:@selector(airMenu:viewControllerAtIndexPath:)])
     {
         BOOL firstTime = FALSE;
@@ -224,6 +223,8 @@
         _currentViewController = [self.airDelegate airMenu:self viewControllerAtIndexPath:indexPath];
         
         UITapGestureRecognizer *tapGesture = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(closeMenuAnimated)];
+        tapGesture.cancelsTouchesInView = YES;
+        tapGesture.delaysTouchesBegan = YES;
         tapGesture.delegate = self;
         [self.currentViewController.view addGestureRecognizer:tapGesture];
         
@@ -278,7 +279,6 @@
     
 }
 
-
 #pragma mark - Actions
 
 - (void)openMenuAnimated
@@ -331,43 +331,6 @@
     }];
     
     _isMenuOpened = FALSE;
-}
-
-
-#pragma mark - TableView Delegate
-
-- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    [self.currentViewController.view removeFromSuperview];
-    [self.currentViewController removeFromParentViewController];
-    [self openViewControllerAtIndexPath:indexPath];
-    
-    if ([self.internalTableDelegate respondsToSelector:@selector(tableView:didSelectRowAtIndexPath:)])
-        [self.internalTableDelegate tableView:tableView didSelectRowAtIndexPath:indexPath];
-}
-
-
-#pragma mark - Setters
-
-- (void)setIsMenuOnRight:(BOOL)isMenuOnRight
-{
-    if (self.view.superview == nil)
-        _isMenuOnRight = isMenuOnRight;
-}
-
-#pragma mark - internalDelegete
-
-- (NSMethodSignature *)methodSignatureForSelector:(SEL)selector
-{
-    NSObject *delegateForResponse = [self.tableView.delegate respondsToSelector:selector] ? self.tableView.delegate : self.internalTableDelegate;
-    return [delegateForResponse respondsToSelector:selector] ? [delegateForResponse methodSignatureForSelector:selector] : nil;
-}
-
-- (void)invokeInvocation:(NSInvocation *)invocation onDelegate:(id<UIScrollViewDelegate>)delegate
-{
-    if ([delegate respondsToSelector:invocation.selector]) {
-        [invocation invokeWithTarget:delegate];
-    }
 }
 
 @end

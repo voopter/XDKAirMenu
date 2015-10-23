@@ -8,7 +8,7 @@
 
 #import "ViewController.h"
 
-@interface ViewController () <XDKAirMenuDelegate>
+@interface ViewController () <XDKAirMenuDelegate, UITableViewDelegate>
 
 @property (nonatomic, strong) UITableView *tableView;
 
@@ -44,9 +44,16 @@
     if ([segue.identifier isEqualToString:@"TableViewSegue"])
     {
         self.tableView = ((UITableViewController*)segue.destinationViewController).tableView;
+        
+        self.tableView.delegate = self;
     }
 }
 
+#pragma mark - UITableView
+
+-(void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
+    [self.airMenuController openViewControllerAtIndexPath:indexPath];
+}
 
 #pragma mark - XDKAirMenuDelegate
 

@@ -82,7 +82,7 @@
  * Controller which is in charge of managing a XDKAirMenu
  *
  */
-@interface XDKAirMenuController : UIViewController
+@interface XDKAirMenuController : UIViewController 
 
 
 /**
